@@ -4,7 +4,8 @@ import { listPublishedSlugs } from '@/lib/data'
 import { languageAlternates } from '@/lib/metadata'
 import { absoluteUrl } from '@/lib/site'
 
-export const revalidate = 3600
+// Built per request (data comes from the cached reads in lib/data), so `next build` never queries the database.
+export const dynamic = 'force-dynamic'
 
 const staticPaths = ['/', '/about', '/services', '/projects', '/news', '/documents', '/contact']
 

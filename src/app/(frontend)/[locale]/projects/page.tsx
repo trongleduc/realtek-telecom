@@ -10,6 +10,10 @@ import { isLocale } from '@/i18n/routing'
 import { listProjects } from '@/lib/data'
 import { buildMetadata } from '@/lib/metadata'
 
+// Reads searchParams (page / filters). Pages under [locale] are not prerendered, so Next cannot infer this;
+// without it the first request is treated as static and fails with DYNAMIC_SERVER_USAGE.
+export const dynamic = 'force-dynamic'
+
 const parsePage = (value: unknown) => Math.max(1, Number.parseInt(String(value ?? '1'), 10) || 1)
 
 export async function generateMetadata({ params, searchParams }: PageProps<'/[locale]/projects'>): Promise<Metadata> {

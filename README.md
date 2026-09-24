@@ -42,11 +42,25 @@ Xem [.env.example](.env.example). Tối thiểu cần `DATABASE_URI`, `PAYLOAD_S
 ## Build và chạy production
 
 ```bash
-npm run build    # cần kết nối được MongoDB khi build
+npm run build    # không cần kết nối database khi build
 npm run start
 ```
 
-Nội dung sửa trong trang quản trị hiển thị ngay, không cần build lại.
+Nội dung sửa trong trang quản trị hiển thị ngay, không cần build lại. Các trang được dựng ở lần truy cập đầu tiên rồi lưu cache.
+
+## Deploy lên Vercel
+
+1. **MongoDB Atlas** (hoặc MongoDB khác truy cập được từ Internet): lấy chuỗi kết nối `mongodb+srv://…`, và trong *Network Access* cho phép `0.0.0.0/0` (Vercel không có IP cố định).
+2. **Cloudflare R2** là bắt buộc: Vercel không lưu được file tải lên ổ đĩa. Tạo bucket, bật truy cập công khai (hoặc gắn domain riêng) và điền các biến `R2_*`.
+3. Trong *Vercel → Project → Settings → Environment Variables* (môi trường Production, và Preview nếu dùng), khai báo ít nhất:
+   - `DATABASE_URI` — chuỗi kết nối Atlas, **không phải** `127.0.0.1`
+   - `PAYLOAD_SECRET`
+   - `NEXT_PUBLIC_SITE_URL` — ví dụ `https://realtektelecom.com` (để trống thì dùng domain production của Vercel)
+   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`
+   - tuỳ chọn: `SMTP_*`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `ALTERNATE_HOSTS`
+4. Deploy lại. Ảnh đã upload khi chạy trên máy (thư mục `/media`) không tự chuyển lên R2: cần upload lại trong trang quản trị, hoặc chạy `npm run seed -- --force` trên máy với `.env` trỏ tới Atlas và R2.
+
+Lưu ý: giới hạn số lần gửi form liên hệ đang lưu trong bộ nhớ, nên trên Vercel mỗi instance đếm riêng. Turnstile vẫn chặn spam bình thường.
 
 ## Sao lưu
 

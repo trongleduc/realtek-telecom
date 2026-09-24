@@ -1,6 +1,16 @@
 import { defaultLocale, type Locale } from '@/i18n/routing'
 
-export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
+const vercelProduction = process.env.VERCEL_PROJECT_PRODUCTION_URL
+
+/** Primary origin. Falls back to the Vercel production domain, then localhost for development. */
+export const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL || (vercelProduction ? `https://${vercelProduction}` : 'http://localhost:3000')
+).replace(/\/$/, '')
+
+/** Extra origins allowed to call the Payload API with cookies (Vercel preview/branch deployments). */
+export const extraOrigins = [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]
+  .filter(Boolean)
+  .map((host) => `https://${host}`)
 
 /** Path with locale prefix; Vietnamese (default) stays unprefixed. */
 export function localizedPath(path: string, locale: Locale | string): string {

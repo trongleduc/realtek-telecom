@@ -23,7 +23,7 @@ import { Users } from './collections/Users'
 import { Footer, Header } from './globals/Navigation'
 import { AboutPage, HomePage } from './globals/Pages'
 import { SiteSettings } from './globals/SiteSettings'
-import { siteUrl } from './lib/site'
+import { extraOrigins, siteUrl } from './lib/site'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -38,7 +38,7 @@ const alternateOrigins = (process.env.ALTERNATE_HOSTS ?? '')
 export default buildConfig({
   serverURL: siteUrl,
   secret: process.env.PAYLOAD_SECRET || '',
-  csrf: [siteUrl, ...alternateOrigins],
+  csrf: [siteUrl, ...alternateOrigins, ...extraOrigins],
   admin: {
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },

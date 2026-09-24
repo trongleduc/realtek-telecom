@@ -13,6 +13,10 @@ import { listDocumentCategories, searchDocuments, type DocumentSort } from '@/li
 import { buildMetadata } from '@/lib/metadata'
 import { localizedPath } from '@/lib/site'
 
+// Reads searchParams (page / filters). Pages under [locale] are not prerendered, so Next cannot infer this;
+// without it the first request is treated as static and fails with DYNAMIC_SERVER_USAGE.
+export const dynamic = 'force-dynamic'
+
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 
 export async function generateMetadata({ params, searchParams }: PageProps<'/[locale]/documents'>): Promise<Metadata> {

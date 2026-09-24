@@ -10,7 +10,7 @@ import { QuickContact } from '@/components/layout/QuickContact'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { SiteHeader, type NavItem } from '@/components/layout/SiteHeader'
 import { Logo } from '@/components/Logo'
-import { isLocale, locales } from '@/i18n/routing'
+import { isLocale } from '@/i18n/routing'
 import { getHeader, getSiteSettings } from '@/lib/data'
 import { resolveImage } from '@/lib/media'
 import { siteUrl } from '@/lib/site'
@@ -31,8 +31,12 @@ const headingFont = Montserrat({
   display: 'swap',
 })
 
+/**
+ * Nothing is prerendered at build time, so building (e.g. on Vercel) never needs the database.
+ * Each locale page is rendered on its first request and then cached like a static page (ISR).
+ */
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }))
+  return []
 }
 
 export const viewport: Viewport = {

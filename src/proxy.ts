@@ -2,10 +2,11 @@ import createMiddleware from 'next-intl/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { routing } from './i18n/routing'
+import { siteUrl } from './lib/site'
 
 const intl = createMiddleware(routing)
 
-const primary = new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
+const primary = new URL(siteUrl)
 const alternateHosts = new Set(
   (process.env.ALTERNATE_HOSTS ?? '')
     .split(',')
