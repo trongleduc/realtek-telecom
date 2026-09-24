@@ -1,4 +1,3 @@
-import { withPayload } from '@payloadcms/next/withPayload'
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 import path from 'path'
@@ -25,6 +24,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
+    // Photos come from Unsplash, which resizes them itself (see the loader file).
+    loader: 'custom',
+    loaderFile: './src/lib/imageLoader.ts',
     formats: ['image/avif', 'image/webp'],
     localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/demo/**' }],
     remotePatterns: [
@@ -53,4 +55,5 @@ const nextConfig: NextConfig = {
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
-export default withPayload(withNextIntl(nextConfig), { devBundleServerPackages: false })
+// Payload's `withPayload` wrapper is not applied while the CMS is switched off (see src/cms/README.md).
+export default withNextIntl(nextConfig)

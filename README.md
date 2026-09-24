@@ -5,15 +5,17 @@ Website giới thiệu doanh nghiệp và thư viện tài liệu trung gian c�
 - Next.js 16 (App Router) + Payload CMS 3 (trang quản trị tại `/admin`)
 - MongoDB, Cloudflare R2 (lưu ảnh), 3 ngôn ngữ: Tiếng Việt (mặc định), English, 中文
 
-## Chế độ demo (chưa có database)
+## Hiện trạng: bản trình diễn giao diện (CMS đang tắt)
 
-Khi chưa khai báo `DATABASE_URI` (hoặc đặt `DEMO_MODE=1`), website chạy bằng dữ liệu mẫu trong [src/demo/content.ts](src/demo/content.ts): đủ mọi trang, 3 ngôn ngữ, ảnh lấy trực tiếp từ Unsplash. Payload và MongoDB không được khởi tạo; `/admin` và `/api` hiển thị trang thông báo, form liên hệ báo gửi thành công nhưng không lưu dữ liệu.
+Website hiện chạy hoàn toàn bằng dữ liệu mẫu trong [src/demo/content.ts](src/demo/content.ts): đủ mọi trang, 3 ngôn ngữ, ảnh lấy trực tiếp từ Unsplash. **Không cần database, không cần biến môi trường nào.** Payload CMS không được đóng gói vào bản build; `/admin` và `/api` hiển thị trang thông báo, form liên hệ báo gửi thành công nhưng không lưu dữ liệu.
 
 ```bash
-DEMO_MODE=1 npm run dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # deploy Vercel: không cần khai báo biến môi trường
 ```
 
-Deploy demo lên Vercel: chỉ cần `DEMO_MODE=1` (và `PAYLOAD_SECRET` bất kỳ). **Xoá `DATABASE_URI` trỏ tới `127.0.0.1`** nếu đã khai báo. Khi có database, bỏ `DEMO_MODE` và chạy `npm run seed` để nạp đúng bộ dữ liệu mẫu này vào Payload.
+Cách bật lại CMS (Payload + MongoDB + R2): xem [src/cms/README.md](src/cms/README.md). Các mục bên dưới áp dụng sau khi đã bật lại CMS.
 
 ## Cài đặt
 

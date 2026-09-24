@@ -1,10 +1,12 @@
 /**
- * Demo-mode implementations of the reads in src/lib/data.ts, built from src/demo/content.ts.
+ * The site's data reads (re-exported by src/lib/data.ts), built from src/demo/content.ts.
+ * Signatures match the Payload implementation in src/cms/data.ts so the two are interchangeable.
  * Documents are shaped like Payload's (generated types), so pages and components need no changes.
  * Photos are served straight from Unsplash at the same sizes Payload would generate.
  */
 import type { PaginatedDocs } from 'payload'
 
+import type { BannerPlacement } from '@/collections/Banners'
 import type { Locale } from '@/i18n/routing'
 import { normalizeSearch } from '@/lib/text'
 import type {
@@ -151,9 +153,9 @@ function paginate<T>(all: T[], page = 1, limit = 10): PaginatedDocs<T> {
 export const getSiteSettings = async (locale: Locale) =>
   ({ id: 'site-settings', ...loc<object>(content.siteSettings, locale), notifyEmails: [] }) as unknown as SiteSetting
 
-export const getHeader = async (): Promise<Header> => ({ id: 'header', navItems: [] })
+export const getHeader: (locale: Locale) => Promise<Header> = async () => ({ id: 'header', navItems: [] })
 
-export const getFooter = async (): Promise<Footer> => ({ id: 'footer', links: [] })
+export const getFooter: (locale: Locale) => Promise<Footer> = async () => ({ id: 'footer', links: [] })
 
 export const getHomePage = async (locale: Locale) =>
   ({ id: 'home-page', ...loc<object>(content.homePage, locale), services: [], projects: [] }) as unknown as HomePage
@@ -181,7 +183,7 @@ export async function getSlider(placement: string, locale: Locale): Promise<Slid
   }
 }
 
-export const getBanners = async (): Promise<Banner[]> => []
+export const getBanners: (placement: BannerPlacement, locale: Locale) => Promise<Banner[]> = async () => []
 
 export async function getPartners(): Promise<Partner[]> {
   return content.partners.map((name, i) => ({
@@ -223,7 +225,7 @@ export async function getBySlug<C extends DetailCollection>(collection: C, slug:
   return (detailSources[collection](locale) as DetailDoc[C][]).find((d) => d.slug === slug) ?? null
 }
 
-export const findRenamedSlug = async (): Promise<string | null> => null
+export const findRenamedSlug: (collection: DetailCollection, slug: string) => Promise<string | null> = async () => null
 
 export async function listProjects(
   locale: Locale,
@@ -247,12 +249,14 @@ export const listPostCategories = async (locale: Locale) => postCategoriesFor(lo
 
 export const listDocumentCategories = async (locale: Locale) => documentCategoriesFor(locale)
 
+export type DocumentSort = 'newest' | 'popular'
+
 export async function searchDocuments(
   locale: Locale,
   opts: {
     q?: string
     categoryId?: string
-    sort?: 'newest' | 'popular'
+    sort?: DocumentSort
     page?: number
     limit?: number
     excludeId?: string

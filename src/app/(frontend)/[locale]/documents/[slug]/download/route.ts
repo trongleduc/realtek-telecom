@@ -1,46 +1,18 @@
-import type { MongooseAdapter } from '@payloadcms/db-mongodb'
 import { NextResponse } from 'next/server'
 
-import { getBySlug } from '@/lib/data'
-import { isDemoMode } from '@/lib/demoMode'
 import { isAllowedDocumentUrl } from '@/lib/documentLinks'
-import { getPayloadClient } from '@/lib/payload'
+import { resolveDownload } from '@/lib/downloads'
 
 export const dynamic = 'force-dynamic'
 
-/** Counts the download, then sends the visitor to the Google Drive / OneDrive link (SRS FR-S2). */
+/** Sends the visitor to the Google Drive / OneDrive link of a document (SRS FR-S2). */
 export async function GET(_request: Request, { params }: RouteContext<'/[locale]/documents/[slug]/download'>) {
   const { slug } = await params
-
-  // Demo mode: no database, so no counter; just follow the placeholder link.
-  if (isDemoMode) {
-    const doc = await getBySlug('documents', slug, 'vi')
-    if (!doc?.externalUrl) return new NextResponse('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } })
-    return NextResponse.redirect(doc.externalUrl, { status: 302, headers: { 'X-Robots-Tag': 'noindex, nofollow' } })
-  }
-
-  const payload = await getPayloadClient()
-  const { docs } = await payload.find({
-    collection: 'documents',
-    where: { and: [{ slug: { equals: slug } }, { _status: { equals: 'published' } }] },
-    depth: 0,
-    limit: 1,
-    select: { externalUrl: true },
-  })
-  const doc = docs[0]
-  if (!doc?.externalUrl || !isAllowedDocumentUrl(doc.externalUrl)) {
+  const url = await resolveDownload(slug)
+  if (!url || !isAllowedDocumentUrl(url)) {
     return new NextResponse('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } })
   }
-
-  // Atomic $inc straight on the collection; it skips hooks/versions on purpose (a counter is not an edit).
-  try {
-    const model = (payload.db as MongooseAdapter).collections.documents
-    await model.updateOne({ _id: doc.id }, { $inc: { downloadCount: 1 } })
-  } catch (error) {
-    payload.logger.error({ err: error, msg: `Could not count download for ${slug}` })
-  }
-
-  return NextResponse.redirect(doc.externalUrl, {
+  return NextResponse.redirect(url, {
     status: 302,
     headers: { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store' },
   })

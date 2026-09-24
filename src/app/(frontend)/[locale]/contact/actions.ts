@@ -2,9 +2,7 @@
 
 import { headers } from 'next/headers'
 
-import { isLocale } from '@/i18n/routing'
-import { isDemoMode } from '@/lib/demoMode'
-import { getPayloadClient } from '@/lib/payload'
+import { saveContact } from '@/lib/contactStore'
 import { rateLimit } from '@/lib/rateLimit'
 
 export type ContactField = 'fullName' | 'phone' | 'email' | 'message'
@@ -70,38 +68,17 @@ export async function submitContact(_prev: ContactState, formData: FormData): Pr
   if (!(await verifyTurnstile(get('cf-turnstile-response', 4000), ip)))
     return { status: 'error', message: 'captcha', values }
 
-  const locale = get('locale', 5)
-  // Demo mode: nothing is stored or emailed; the form behaves as if the message was received.
-  if (isDemoMode) return { status: 'success' }
   try {
-    const payload = await getPayloadClient()
-    let serviceId: string | undefined
-    let serviceTitle: string | undefined
-    if (values.service) {
-      const service = await payload
-        .findByID({ collection: 'services', id: values.service, depth: 0, locale: 'vi', disableErrors: true })
-        .catch(() => null)
-      if (service) {
-        serviceId = String(service.id)
-        serviceTitle = service.title
-      }
-    }
-    await payload.create({
-      collection: 'contact-submissions',
-      overrideAccess: true,
-      data: {
-        fullName: values.fullName,
-        phone: values.phone,
-        email: values.email || undefined,
-        company: values.company || undefined,
-        service: serviceId,
-        serviceTitle,
-        message: values.message,
-        status: 'new',
-        locale: isLocale(locale) ? locale : 'vi',
-        sourceUrl: h.get('referer')?.slice(0, 500) || undefined,
-        ip,
-      },
+    await saveContact({
+      fullName: values.fullName,
+      phone: values.phone,
+      email: values.email || undefined,
+      company: values.company || undefined,
+      service: values.service || undefined,
+      message: values.message,
+      locale: get('locale', 5),
+      sourceUrl: h.get('referer')?.slice(0, 500) || undefined,
+      ip,
     })
     return { status: 'success' }
   } catch (error) {
