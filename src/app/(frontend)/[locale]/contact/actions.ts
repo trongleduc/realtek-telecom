@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 
 import { isLocale } from '@/i18n/routing'
+import { isDemoMode } from '@/lib/demoMode'
 import { getPayloadClient } from '@/lib/payload'
 import { rateLimit } from '@/lib/rateLimit'
 
@@ -70,6 +71,8 @@ export async function submitContact(_prev: ContactState, formData: FormData): Pr
     return { status: 'error', message: 'captcha', values }
 
   const locale = get('locale', 5)
+  // Demo mode: nothing is stored or emailed; the form behaves as if the message was received.
+  if (isDemoMode) return { status: 'success' }
   try {
     const payload = await getPayloadClient()
     let serviceId: string | undefined

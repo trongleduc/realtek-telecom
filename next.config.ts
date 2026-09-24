@@ -26,8 +26,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     formats: ['image/avif', 'image/webp'],
-    localPatterns: [{ pathname: '/api/media/file/**' }],
+    localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/demo/**' }],
     remotePatterns: [
+      // Demo-mode photos (src/demo/content.ts) are served straight from Unsplash.
+      { protocol: 'https', hostname: 'images.unsplash.com' },
       ...(r2Public
         ? [{ protocol: r2Public.protocol.replace(':', '') as 'https' | 'http', hostname: r2Public.hostname }]
         : []),

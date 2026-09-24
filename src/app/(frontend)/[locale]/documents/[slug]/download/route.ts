@@ -1,6 +1,8 @@
 import type { MongooseAdapter } from '@payloadcms/db-mongodb'
 import { NextResponse } from 'next/server'
 
+import { getBySlug } from '@/lib/data'
+import { isDemoMode } from '@/lib/demoMode'
 import { isAllowedDocumentUrl } from '@/lib/documentLinks'
 import { getPayloadClient } from '@/lib/payload'
 
@@ -9,6 +11,14 @@ export const dynamic = 'force-dynamic'
 /** Counts the download, then sends the visitor to the Google Drive / OneDrive link (SRS FR-S2). */
 export async function GET(_request: Request, { params }: RouteContext<'/[locale]/documents/[slug]/download'>) {
   const { slug } = await params
+
+  // Demo mode: no database, so no counter; just follow the placeholder link.
+  if (isDemoMode) {
+    const doc = await getBySlug('documents', slug, 'vi')
+    if (!doc?.externalUrl) return new NextResponse('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex' } })
+    return NextResponse.redirect(doc.externalUrl, { status: 302, headers: { 'X-Robots-Tag': 'noindex, nofollow' } })
+  }
+
   const payload = await getPayloadClient()
   const { docs } = await payload.find({
     collection: 'documents',

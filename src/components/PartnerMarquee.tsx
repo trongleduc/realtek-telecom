@@ -33,6 +33,7 @@ export function PartnerMarquee({ partners }: { partners: Partner[] }) {
                     alt={p.name}
                     width={p.logo!.width}
                     height={p.logo!.height}
+                    unoptimized={p.logo!.mimeType === 'image/svg+xml'}
                     className="h-10 w-auto max-w-[150px] object-contain md:h-12"
                   />
                 </a>
@@ -42,6 +43,7 @@ export function PartnerMarquee({ partners }: { partners: Partner[] }) {
                   alt={p.name}
                   width={p.logo!.width}
                   height={p.logo!.height}
+                  unoptimized={p.logo!.mimeType === 'image/svg+xml'}
                   className="h-10 w-auto max-w-[150px] object-contain opacity-60 grayscale transition duration-500 hover:opacity-100 hover:grayscale-0 md:h-12"
                 />
               )}
