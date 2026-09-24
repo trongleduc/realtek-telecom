@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Website Realtek Telecom
 
-## Getting Started
+Website giới thiệu doanh nghiệp và thư viện tài liệu trung gian của Công ty Cổ phần Tin học Viễn thông Realtek. Đặc tả yêu cầu và kế hoạch: [docs/SRS.md](docs/SRS.md).
 
-First, run the development server:
+- Next.js 16 (App Router) + Payload CMS 3 (trang quản trị tại `/admin`)
+- MongoDB, Cloudflare R2 (lưu ảnh), 3 ngôn ngữ: Tiếng Việt (mặc định), English, 中文
+
+## Cài đặt
+
+Yêu cầu: Node.js ≥ 20.9, MongoDB.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env      # điền DATABASE_URI, PAYLOAD_SECRET, NEXT_PUBLIC_SITE_URL…
+npm run dev               # http://localhost:3000 — quản trị: http://localhost:3000/admin
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Lần đầu mở `/admin`, hệ thống yêu cầu tạo tài khoản đầu tiên (tự động là Quản trị viên). Hoặc tạo bằng lệnh:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run create-user -- --email=ten@realtek.vn --name="Nguyễn Văn A" --role=admin
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Dữ liệu mẫu để xem trước giao diện (ảnh Unsplash, nội dung giả định — thay bằng nội dung thật trước khi chạy chính thức):
 
-## Learn More
+```bash
+npm run seed              # chỉ chạy khi chưa có dữ liệu
+npm run seed -- --force   # xoá nội dung cũ rồi seed lại (giữ tài khoản và liên hệ)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Biến môi trường
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Xem [.env.example](.env.example). Tối thiểu cần `DATABASE_URI`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_SITE_URL`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Nhóm | Ghi chú |
+|---|---|
+| `R2_*` | Để trống `R2_BUCKET` thì ảnh lưu trên ổ đĩa (`/media`), chỉ nên dùng khi phát triển. `R2_PUBLIC_URL` là domain công khai của bucket. |
+| `SMTP_*` | Gửi email báo liên hệ mới. Không cấu hình thì email chỉ ghi ra log. Địa chỉ nhận đặt trong Cấu hình chung → Thông báo & CRM. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile cho form liên hệ (tuỳ chọn). |
+| `ALTERNATE_HOSTS` | Các tên miền phụ chuyển hướng 301 về tên miền chính. |
 
-## Deploy on Vercel
+## Build và chạy production
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run build    # cần kết nối được MongoDB khi build
+npm run start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Nội dung sửa trong trang quản trị hiển thị ngay, không cần build lại.
+
+## Sao lưu
+
+`npm run backup` chạy `mongodump`, nén và tải lên bucket `R2_BACKUP_BUCKET`, giữ 30 bản gần nhất. Cần cài MongoDB Database Tools. Lịch chạy hằng ngày (cron):
+
+```
+0 2 * * * cd /srv/realtek-telecom && npm run backup >> /var/log/realtek-backup.log 2>&1
+```
+
+Khôi phục: tải bản sao lưu về rồi chạy `mongorestore --uri="$DATABASE_URI" --gzip --archive=<file> --drop`.
+
+## Lệnh khác
+
+| Lệnh | Mục đích |
+|---|---|
+| `npm run lint` / `npm run typecheck` | Kiểm tra mã nguồn |
+| `npm run generate:types` | Sinh lại `src/payload-types.ts` sau khi sửa collection/global |
+| `npm run generate:importmap` | Sinh lại import map khi thêm component tuỳ biến cho admin |
