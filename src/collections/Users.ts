@@ -90,8 +90,18 @@ export const Users: CollectionConfig = {
       async ({ data, originalDoc, operation, req }) => {
         if (operation === 'create') {
           // The very first account (created from /admin/create-first-user or the CLI) is always an admin.
-          const { totalDocs } = await req.payload.count({ collection: 'users', overrideAccess: true, req })
-          if (totalDocs === 0) {
+          // find, not count: an unfiltered count is an estimatedDocumentCount, which MongoDB refuses inside a
+          // transaction (replica sets such as Atlas).
+          const { docs } = await req.payload.find({
+            collection: 'users',
+            limit: 1,
+            pagination: false,
+            depth: 0,
+            select: {},
+            overrideAccess: true,
+            req,
+          })
+          if (docs.length === 0) {
             data.role = 'admin'
             data.active = true
           }

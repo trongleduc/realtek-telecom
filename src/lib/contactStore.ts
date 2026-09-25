@@ -11,10 +11,5 @@ export type ContactInput = {
   ip: string
 }
 
-/**
- * Stores a contact-form submission. The CMS is currently switched off, so submissions are only logged;
- * src/cms/contact.ts saves them to Payload (and emails staff) once the CMS is re-enabled.
- */
-export async function saveContact(input: ContactInput): Promise<void> {
-  console.info('Contact form (CMS disabled, not stored):', input.fullName, input.phone)
-}
+/** Saves a contact-form submission to Payload, whose hook emails staff (see src/cms/contact.ts). */
+export { saveContact } from '@/cms/contact'

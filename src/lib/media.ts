@@ -13,9 +13,15 @@ export type ResolvedImage = {
   mimeType?: string
 }
 
-/** Payload prefixes local files with serverURL; next/image needs them as same-origin relative paths. */
+/**
+ * Payload prefixes local files with serverURL; next/image needs them as same-origin relative paths. Files under
+ * /api/media/file/ are always served by this app, so any host is stripped: a URL cached or saved under another
+ * serverURL (e.g. localhost vs the production domain) must not break the page.
+ */
 function toImageSrc(url: string): string {
-  return url.startsWith(`${siteUrl}/`) ? url.slice(siteUrl.length) : url
+  if (url.startsWith(`${siteUrl}/`)) return url.slice(siteUrl.length)
+  const local = /^https?:\/\/[^/]+(\/api\/media\/file\/.*)$/.exec(url)
+  return local ? local[1] : url
 }
 
 export function asMedia(value: unknown): Media | null {

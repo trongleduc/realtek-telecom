@@ -208,6 +208,8 @@ export interface Media {
   caption?: string | null;
   createdBy?: (string | null) | User;
   updatedBy?: (string | null) | User;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -816,6 +818,8 @@ export interface MediaSelect<T extends boolean = true> {
   caption?: T;
   createdBy?: T;
   updatedBy?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

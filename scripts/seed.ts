@@ -21,7 +21,9 @@ if (!process.env.DATABASE_URI) {
 }
 
 const force = process.argv.includes('--force')
-const ctx = { disableRevalidate: true }
+// A fresh object per call: the cloud-storage plugin stores the incoming file in req.context
+// (`_payloadCloudStorage`, only if unset), so a shared object would make every upload reuse the first file.
+const ctx = () => ({ disableRevalidate: true })
 const translations = ['en', 'zh'] as const
 const payload: Payload = await getPayload({ config })
 
@@ -61,7 +63,7 @@ async function createLocalized(collection: Collection, data: object, drafts = tr
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: { ...(localize(data, 'vi') as object), ...status } as any,
     depth: 0,
-    context: ctx,
+    context: ctx(),
   })
   for (const locale of translations) {
     await payload.update({
@@ -71,7 +73,7 @@ async function createLocalized(collection: Collection, data: object, drafts = tr
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: { ...(withRowIds(localize(data, locale), created) as object), ...status } as any,
       depth: 0,
-      context: ctx,
+      context: ctx(),
     })
   }
   return created.id
@@ -84,7 +86,7 @@ async function setGlobal(slug: 'site-settings' | 'home-page' | 'about-page', dat
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: localize(data, 'vi') as any,
     depth: 0,
-    context: ctx,
+    context: ctx(),
   })
   for (const locale of translations) {
     await payload.updateGlobal({
@@ -93,7 +95,7 @@ async function setGlobal(slug: 'site-settings' | 'home-page' | 'about-page', dat
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: withRowIds(localize(data, locale), saved) as any,
       depth: 0,
-      context: ctx,
+      context: ctx(),
     })
   }
 }
@@ -104,9 +106,9 @@ async function createCategory(
   title: content.L,
   order: number,
 ) {
-  const c = await payload.create({ collection, locale: 'vi', data: { slug, title: title.vi, order }, context: ctx })
+  const c = await payload.create({ collection, locale: 'vi', data: { slug, title: title.vi, order }, context: ctx() })
   for (const locale of translations) {
-    await payload.update({ collection, id: c.id, locale, data: { title: title[locale] }, context: ctx })
+    await payload.update({ collection, id: c.id, locale, data: { title: title[locale] }, context: ctx() })
   }
   return c.id
 }
@@ -117,10 +119,10 @@ async function upload(name: string, data: Buffer, alt: content.L, mimetype: stri
     locale: 'vi',
     data: { alt: alt.vi },
     file: { data, mimetype, name, size: data.length },
-    context: ctx,
+    context: ctx(),
   })
   for (const locale of translations) {
-    await payload.update({ collection: 'media', id: media.id, locale, data: { alt: alt[locale] }, context: ctx })
+    await payload.update({ collection: 'media', id: media.id, locale, data: { alt: alt[locale] }, context: ctx() })
   }
   return media.id
 }
@@ -153,7 +155,7 @@ if (force) {
     'partners',
     'media',
   ] as const) {
-    await payload.delete({ collection, where: { id: { exists: true } }, context: ctx })
+    await payload.delete({ collection, where: { id: { exists: true } }, context: ctx() })
   }
   console.log('Đã xoá dữ liệu cũ.')
 }
@@ -218,7 +220,7 @@ for (const [i, name] of content.partners.entries()) {
     { vi: name, en: name, zh: name },
     'image/png',
   )
-  await payload.create({ collection: 'partners', data: { name, logo, order: i, enabled: true }, context: ctx })
+  await payload.create({ collection: 'partners', data: { name, logo, order: i, enabled: true }, context: ctx() })
 }
 
 await setGlobal('site-settings', content.siteSettings)

@@ -1,28 +1,27 @@
-# CMS (Payload) — hiện đang tắt
+# CMS (Payload)
 
-Website đang ở bản trình diễn giao diện: mọi dữ liệu lấy từ `src/demo/content.ts`, không cần database và không cần biến môi trường. Payload không được đóng gói vào bản build: không route nào của website import tới nó.
+Website đọc dữ liệu từ MongoDB qua Payload. Trang quản trị ở `/admin`.
 
-Mã CMS vẫn được giữ nguyên để bật lại:
-
-| Thành phần | Vị trí |
-|---|---|
+| Thành phần                                        | Vị trí                                                                                                                           |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | Cấu hình, collections, globals, phân quyền, hooks | `src/payload.config.ts`, `src/collections/`, `src/globals/`, `src/access/`, `src/hooks/`, `src/fields/`, `src/components/admin/` |
-| Route admin + REST/GraphQL API | `src/cms/app/(payload)/` |
-| Lớp dữ liệu đọc từ Payload | `src/cms/data.ts` (cùng tên hàm với `src/lib/data.ts`) |
-| Lưu form liên hệ, đếm lượt tải tài liệu | `src/cms/contact.ts`, `src/cms/download.ts` |
-| Xem bản nháp, làm mới cache cho script | `src/cms/routes/*.ts` |
+| Route admin + REST/GraphQL API                    | `src/app/(payload)/`                                                                                                             |
+| Lớp dữ liệu đọc từ Payload                        | `src/cms/data.ts` (được `src/lib/data.ts` re-export)                                                                             |
+| Lưu form liên hệ, đếm lượt tải tài liệu           | `src/cms/contact.ts`, `src/cms/download.ts` (qua `src/lib/contactStore.ts`, `src/lib/downloads.ts`)                              |
+| Xem bản nháp, làm mới cache cho script            | `src/app/(frontend)/next/{preview,exit-preview,revalidate}/route.ts`                                                             |
 
-## Bật lại CMS
+## Khởi tạo
 
-1. Chuyển route admin về lại thư mục app: `git mv "src/cms/app/(payload)" "src/app/(payload)"`.
-2. Đặt lại các route phụ:
-   - `src/cms/routes/preview.ts` → `src/app/(frontend)/next/preview/route.ts`
-   - `src/cms/routes/exit-preview.ts` → `src/app/(frontend)/next/exit-preview/route.ts`
-   - `src/cms/routes/revalidate.ts` → `src/app/(frontend)/next/revalidate/route.ts`
-3. Đổi nguồn dữ liệu:
-   - `src/lib/data.ts`: `export * from '@/cms/data'`
-   - `src/lib/contactStore.ts`: dùng `saveContact` trong `src/cms/contact.ts`
-   - `src/lib/downloads.ts`: dùng `resolveDownload` trong `src/cms/download.ts`
-4. `next.config.ts`: bọc lại cấu hình bằng `withPayload(withNextIntl(nextConfig), { devBundleServerPackages: false })`, bỏ `loader`/`loaderFile` của `images`.
-5. `src/proxy.ts`: bỏ đoạn trả trang thông báo cho `/admin` và `/api`.
-6. Khai báo biến môi trường (`DATABASE_URI`, `PAYLOAD_SECRET`, `R2_*`…) theo `.env.example`, chạy `npm run generate:importmap`, rồi `npm run seed` để nạp đúng nội dung mẫu đang hiển thị.
+1. Khai báo biến môi trường theo `.env.example` (bắt buộc: `DATABASE_URI`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_SITE_URL`).
+2. `npm run seed` để nạp nội dung mẫu (`-- --force` xoá nội dung cũ rồi nạp lại).
+3. `npm run create-user -- --email=… --role=admin` để tạo tài khoản quản trị.
+
+Không có `R2_BUCKET` thì ảnh upload được lưu ở thư mục `media/` trên máy. Khi bật R2 sau khi đã có dữ liệu, các file cũ
+không tự chuyển lên R2: upload lại (hoặc `npm run seed -- --force` nếu vẫn là dữ liệu mẫu).
+
+## Chạy bản trình diễn không cần database
+
+`src/demo/provider.ts` có cùng các hàm với `src/cms/data.ts` và đọc từ `src/demo/content.ts`. Để dùng nó: cho
+`src/lib/data.ts` re-export `@/demo/provider`, chuyển `src/app/(payload)` ra khỏi `src/app`, bỏ `withPayload` trong
+`next.config.ts`, thêm `images.unsplash.com` vào `images.remotePatterns` (ảnh demo lấy từ Unsplash), và cho
+`contactStore.ts`/`downloads.ts` không import `src/cms/*`.
