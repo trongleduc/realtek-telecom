@@ -57,7 +57,7 @@ function HeroText({ title, eyebrow, lead, crumbs }: Pick<Props, 'title' | 'eyebr
         </Reveal>
       ) : null}
       <Reveal variant="up" delay={180} once>
-        <h1 className="mt-4 font-display text-[clamp(32px,5.2vw,68px)] font-bold uppercase leading-[1.04] tracking-[-0.01em]">
+        <h1 className="mt-4 font-display text-[clamp(32px,5.2vw,68px)] font-bold uppercase leading-[1.14] tracking-[-0.01em]">
           {title}
         </h1>
       </Reveal>

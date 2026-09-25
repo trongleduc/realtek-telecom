@@ -83,7 +83,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
         <section className="flex min-h-[70svh] items-end bg-brand-deep pb-20 pt-40 text-white">
           <div className="container-x">
             <p className="eyebrow eyebrow--light">{t('eyebrow')}</p>
-            <h1 className="mt-5 max-w-4xl font-display text-[clamp(34px,6vw,80px)] font-bold uppercase leading-[1.02]">
+            <h1 className="mt-5 max-w-4xl font-display text-[clamp(34px,6vw,80px)] font-bold uppercase leading-[1.14]">
               {intro?.heading || t('eyebrow')}
             </h1>
           </div>

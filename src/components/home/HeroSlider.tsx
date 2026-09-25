@@ -180,9 +180,11 @@ export function HeroSlider({ slides, autoplay = true, intervalSeconds = 6, varia
               </div>
             ) : null}
             {current.heading ? (
-              <div className="mt-5 overflow-hidden pb-1">
+              <div className="-mb-[0.2em] mt-[calc(1.25rem-0.3em)] overflow-hidden pb-[0.2em] pt-[0.3em] font-display text-[clamp(34px,6vw,80px)]">
+                {/* The em padding (offset by the margins) keeps stacked Vietnamese diacritics (Ế, Ộ)
+                    inside the clipping box that the rise animation needs. */}
                 <h1
-                  className="rise font-display text-[clamp(34px,6vw,80px)] font-bold uppercase leading-[1.02] tracking-[-0.01em]"
+                  className="rise font-bold uppercase leading-[1.14] tracking-[-0.01em]"
                   style={{ animationDelay: '380ms' }}
                 >
                   {current.heading}
